@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # EcoCarbon - AI-Powered Carbon Footprint Reduction Assistant
 
 EcoCarbon is a production-ready, full-stack application designed to help individuals calculate, track, and mitigate their environmental footprint. Combining localized carbon calculation, dynamic behavioral recommendations, gamified milestone tracking, and a context-aware AI chat assistant, the platform helps users build habits that reduce greenhouse gas emissions.
@@ -234,3 +235,6 @@ $$\text{Impact Score} = \text{Carbon Reduction} \times \text{Feasibility} \times
 * **Real-time Utility Bill Integration**: Integration with utility APIs (Smart Plugs, PG&E, etc.) to automate electricity inputs.
 * **Community Challenges**: Cooperative team-based reduction challenges (e.g. "College Dorm Energy Challenge").
 * **OCR Receipt Scanner**: Scanning shopping and grocery receipts to automatically compute food and retail carbon emissions using receipt text parsing.
+=======
+# Virtual_promptwars_03
+>>>>>>> 7c5d16b5de017e06a050fcd85f3030d89c561b9c

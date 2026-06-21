@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: carbon_mongodb
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: mongosh --eval "db.adminCommand('ping')" || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  mongodb-setup:
+    image: mongo:6.0
+    container_name: carbon_mongodb_setup
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    entrypoint: [ "mongosh", "--host", "mongodb:27017", "--eval", "rs.initiate({ _id: 'rs0', members: [ { _id: 0, host: 'mongodb:27017' } ] }) || rs.status()" ]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: carbon_backend
+    restart: always
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      mongodb-setup:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: carbon_frontend
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
+

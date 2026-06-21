@@ -1,0 +1,115 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  email        String            @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  profile      UserProfile?
+  footprints   FootprintRecord[]
+  goals        Goal[]
+  badges       UserBadge[]
+  activityLog  ActivityLog[]
+  chatMessages ChatMessage[]
+  recommendations Recommendation[]
+}
+
+model UserProfile {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @unique @db.ObjectId
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ageGroup           String   // "student", "professional", "senior", etc.
+  location           String   // country/city for grid factor calculations
+  diet               String   // "vegan", "vegetarian", "low_meat", "high_meat"
+  transportMode      String   // "car_petrol", "car_electric", "motorcycle", "public", "walk"
+  weeklyDistanceKm   Float    @default(0)
+  electricityKwhM    Float    @default(0)
+  acHoursPerDay      Float    @default(0)
+  flightHoursPerYear Float    @default(0)
+  shoppingFrequency  String   // "low", "medium", "high"
+  wasteRecyclingRate Float    @default(0) // 0.0 to 1.0
+  sustainabilityScore Int     @default(50)
+  xpPoints           Int      @default(0)
+  streakDays         Int      @default(0)
+  lastActiveDate     DateTime @default(now())
+}
+
+model FootprintRecord {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recordedMonth   DateTime // Month/Year representation
+  transportEmissions Float // kg CO2
+  energyEmissions    Float // kg CO2
+  foodEmissions      Float // kg CO2
+  shoppingEmissions  Float // kg CO2
+  wasteEmissions     Float // kg CO2
+  totalEmissions     Float // kg CO2
+  createdAt       DateTime @default(now())
+}
+
+model Recommendation {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  description       String
+  category          String   // "transport", "energy", "food", "shopping", "waste"
+  co2Reduction      Float    // kg CO2/month
+  difficulty        String   // "low", "medium", "high"
+  estimatedSavings  Float    // INR/USD per month
+  timeRequired      String   // "immediate", "short_term", "long_term"
+  impactScore       Float
+  status            String   // "active", "completed", "skipped"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Goal {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  category       String   // "total", "transport", "energy", "food", etc.
+  targetValue    Float    // target emissions or percentage reduction
+  currentValue   Float    @default(0)
+  startDate      DateTime @default(now())
+  endDate        DateTime
+  isCompleted    Boolean  @default(false)
+}
+
+model ActivityLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionName  String
+  xpEarned    Int
+  createdAt   DateTime @default(now())
+}
+
+model UserBadge {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeName String   // "Eco Beginner", "Green Champion", "Carbon Hero", "Planet Protector"
+  earnedAt  DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sender    String   // "user" or "assistant"
+  text      String
+  createdAt DateTime @default(now())
+}
+

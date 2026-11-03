@@ -1,5 +1,43 @@
+# Dependencies & Node
 node_modules/
+package-lock.json
+npm-debug.log*
+
+# Environment files
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Frontend Build
+frontend/dist/
+frontend/build/
 dist/
 build/
 coverage/
+
+# Java & Maven
+target/
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+.metadata
+.project
+.classpath
+.settings/
+
+# IDE & OS
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

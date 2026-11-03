@@ -1,28 +1,25 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:6.0
-    container_name: carbon_mongodb
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+  mysql:
+    image: mysql:8.0
+    container_name: carbon_mysql
     restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: carbon
+      MYSQL_USER: ecouser
+      MYSQL_PASSWORD: ecopassword
     ports:
-      - '27017:27017'
+      - '3306:3306'
     volumes:
-      - mongodb_data:/data/db
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: mongosh --eval "db.adminCommand('ping')" || exit 1
-      interval: 5s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "ecouser", "-pecopassword"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-
-  mongodb-setup:
-    image: mongo:6.0
-    container_name: carbon_mongodb_setup
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    entrypoint: [ "mongosh", "--host", "mongodb:27017", "--eval", "rs.initiate({ _id: 'rs0', members: [ { _id: 0, host: 'mongodb:27017' } ] }) || rs.status()" ]
+      retries: 5
+      start_period: 30s
 
   backend:
     build:
@@ -31,14 +28,18 @@ services:
     container_name: carbon_backend
     restart: always
     ports:
-      - '5000:5000'
-    env_file:
-      - ./backend/.env
+      - '8080:8080'
     environment:
-      - NODE_ENV=production
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=jdbc:mysql://mysql:3306/carbon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - DB_USERNAME=ecouser
+      - DB_PASSWORD=ecopassword
+      - JWT_SECRET=carbon_footprint_assistant_secret_2026_xyz_enterprise_secure_token
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
     depends_on:
-      mongodb-setup:
-        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
 
   frontend:
     build:
@@ -48,11 +49,8 @@ services:
     restart: always
     ports:
       - '3000:3000'
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
     depends_on:
       - backend
 
 volumes:
-  mongodb_data:
-
+  mysql_data:
